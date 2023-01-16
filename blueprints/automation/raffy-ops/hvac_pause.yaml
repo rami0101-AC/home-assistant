@@ -1,0 +1,103 @@
+blueprint:
+  name: HVAC Pause
+  description: Pauses HVAC when windows/doors open; resumes last state once closed
+  domain: automation
+  input:
+    climate_device:
+      description: Climate entity used for climate control.
+      name: Climate Device
+      selector:
+        entity:
+          domain: climate
+          multiple: false
+    doors_windows:
+      description: Group of entities that will activate automation. (Assumes 'on'
+        means 'open')
+      name: Door and window sensors.
+      selector:
+        entity:
+          domain: binary_sensor
+          multiple: false
+    pause_delay_mins:
+      description: Time to wait before pausing HVAC in minutes.
+      name: Pause Delay Minutes
+      default: 5
+      selector:
+        number:
+          min: 0.0
+          max: 60.0
+          unit_of_measurement: Minutes
+          step: 1.0
+          mode: slider
+    pause_delay_secs:
+      description: Time to wait before pausing HVAC in seconds.
+      name: Pause Delay Seconds
+      default: 0
+      selector:
+        number:
+          min: 0.0
+          max: 59.0
+          unit_of_measurement: Seconds
+          step: 1.0
+          mode: slider
+    resume_delay_mins:
+      description: Time to wait before resuming HVAC in minutes.
+      name: Resume Delay Minutes
+      default: 0
+      selector:
+        number:
+          min: 0.0
+          max: 60.0
+          unit_of_measurement: Minutes
+          step: 1.0
+          mode: slider
+    resume_delay_secs:
+      description: Time to wait before resuming HVAC in seconds.
+      name: Resume Delay Seconds
+      default: 30
+      selector:
+        number:
+          min: 0.0
+          max: 59.0
+          unit_of_measurement: Seconds
+          step: 1.0
+          mode: slider
+  source_url: https://gist.github.com/raffy-ops/2bdf967036d8d274fb1f62572ed5e545
+mode: single
+trigger:
+- platform: state
+  entity_id: !input doors_windows
+  from: 'off'
+  to: 'on'
+  for:
+    hours: 0
+    minutes: !input pause_delay_mins
+    seconds: !input pause_delay_secs
+  id: group_open
+condition:
+- condition: not
+  conditions:
+  - condition: state
+    entity_id: !input climate_device
+    state: 'off'
+action:
+- service: scene.create
+  data:
+    scene_id: climate_snapshot
+    snapshot_entities: !input climate_device
+- service: climate.set_hvac_mode
+  target:
+    entity_id: !input climate_device
+  data:
+    hvac_mode: 'off'
+- wait_for_trigger:
+  - platform: state
+    entity_id: !input doors_windows
+    from: 'on'
+    to: 'off'
+    for:
+      hours: 0
+      minutes: !input resume_delay_mins
+      seconds: !input resume_delay_secs
+  continue_on_timeout: false
+- scene: scene.climate_snapshot

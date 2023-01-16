@@ -1,0 +1,54 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+http:
+  #ssl_certificate: /ssl/fullchain.pem
+  #ssl_key: /ssl/privkey.pem
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 127.0.0.1
+    #- 10.0.0.85
+    - 10.0.0.0/23
+    - 172.30.33.0/24
+    #- ::1
+
+# Text to speech
+tts:
+  - platform: google_translate
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+panel_custom:
+  - name: panel_integrations
+    sidebar_title: Integrations
+    sidebar_icon: mdi:audio-input-rca
+    url_path: "config/integrations"
+    module_url: /api/hassio/app/entrypoint.js
+    embed_iframe: true
+    require_admin: true
+  - name: panel_add_ons
+    sidebar_title: Add-Ons
+    sidebar_icon: mdi:store
+    url_path: "hassio/dashboard"
+    module_url: /api/hassio/app/entrypoint.js
+    embed_iframe: true
+    require_admin: true
+  - name: panel_automations
+    sidebar_title: Automations
+    sidebar_icon: mdi:cogs
+    url_path: "config/automation"
+    module_url: /api/hassio/app/entrypoint.js
+    embed_iframe: true
+    require_admin: true
+
+notify:
+  - name: all_ios_devices
+    platform: group
+    services:
+      - service: mobile_app_iphone
+      - service: mobile_app_ipad
+  - name: tay_devices
+    platform: group
+    services:
+      - service: mobile_app_iphone

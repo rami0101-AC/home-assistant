@@ -1,0 +1,1172 @@
+- id: "1658403154861"
+  alias: Powder Room Pico
+  description: ""
+  use_blueprint:
+    path: ogiewon/pico-2.yaml
+    input:
+      pico_remote: 2ffc95468f818c8a4600a5cd49f2c3d5
+      top_on:
+        - type: toggle
+          device_id: d91718b384dec500f8e762d5ada71eea
+          entity_id: light.powdered_room
+          domain: light
+      bottom_off:
+        - type: toggle
+          device_id: 2a73d18790eadf8a450224d9f58065a9
+          entity_id: fan.exhaust_fan_socket_1
+          domain: fan
+      auto_mode: single
+- id: "1658404311101"
+  alias: HVAC Pause
+  description: ""
+  use_blueprint:
+    path: raffy-ops/hvac_pause.yaml
+    input:
+      climate_device: climate.ecobee
+      doors_windows: binary_sensor.open_doors
+      resume_delay_secs: 30
+      resume_delay_mins: 5
+      pause_delay_mins: 5
+      pause_delay_secs: 30
+- id: "1658421064813"
+  alias: Dynamic Doorbell
+  description: ""
+  use_blueprint:
+    path: unifi-protect/dynamic_doorbell.yaml
+    input:
+      doorbell: select.doorbell_doorbell_text
+      always_run: true
+      temp_entity: sensor.home_realfeel_temperature
+      text_template: Happy 2023! | {ctime} {temp}
+- id: "1658425464015"
+  alias: Empty Home
+  description: ""
+  trigger:
+    - platform: device
+      device_id: 3da706f92f3dc35a7debfe1cf3a7c7d3
+      domain: device_tracker
+      entity_id: device_tracker.tays_iphone
+      type: leaves
+      zone: zone.home
+    - platform: device
+      device_id: 798929cc56393fec06823fbf5cca9735
+      domain: device_tracker
+      entity_id: device_tracker.iphone_mello
+      type: leaves
+      zone: zone.home
+  condition:
+    - condition: and
+      conditions:
+        - condition: device
+          device_id: 3da706f92f3dc35a7debfe1cf3a7c7d3
+          domain: device_tracker
+          entity_id: device_tracker.tays_iphone
+          type: is_not_home
+        - condition: device
+          device_id: 798929cc56393fec06823fbf5cca9735
+          domain: device_tracker
+          entity_id: device_tracker.iphone_mello
+          type: is_not_home
+  action:
+    - service: light.turn_off
+      data:
+        entity_id: all
+    - service: fan.turn_off
+      data: {}
+      target:
+        device_id:
+          - 644fa09cece5ad0a26067dd3ef75a99e
+          - 2a73d18790eadf8a450224d9f58065a9
+    - device_id: 11fb1a0e364bec47fe131a80745c0751
+      domain: cover
+      entity_id: cover.garage_door_myq
+      type: close
+    - device_id: 0922bdc50d7ab4dd49190f6ee9235630
+      domain: lock
+      entity_id: lock.garage_entry_door
+      type: lock
+  mode: single
+- id: "1658430480524"
+  alias: Welcome Home
+  description: ""
+  trigger:
+    - platform: device
+      device_id: 3da706f92f3dc35a7debfe1cf3a7c7d3
+      domain: device_tracker
+      entity_id: device_tracker.tays_iphone
+      type: enters
+      zone: zone.home
+    - platform: device
+      device_id: 798929cc56393fec06823fbf5cca9735
+      domain: device_tracker
+      entity_id: device_tracker.iphone_mello
+      type: enters
+      zone: zone.home
+  condition:
+    - condition: or
+      conditions:
+        - condition: device
+          device_id: 798929cc56393fec06823fbf5cca9735
+          domain: device_tracker
+          entity_id: device_tracker.iphone_mello
+          type: is_home
+        - condition: device
+          device_id: 3da706f92f3dc35a7debfe1cf3a7c7d3
+          domain: device_tracker
+          entity_id: device_tracker.tays_iphone
+          type: is_home
+  action:
+    - device_id: 9e759f3131cbe903c15d81c3a9754505
+      domain: alarm_control_panel
+      entity_id: alarm_control_panel.ottawa_alarm
+      type: disarm
+  mode: single
+- id: "1658431893249"
+  alias: Alarm On
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - calendar.home_assistant_schedule
+      to: "on"
+  condition:
+    - condition: state
+      entity_id: calendar.home_assistant_schedule
+      state: "Alarm: Home"
+      attribute: message
+    - condition: and
+      conditions:
+        - condition: device
+          device_id: 3da706f92f3dc35a7debfe1cf3a7c7d3
+          domain: device_tracker
+          entity_id: device_tracker.tays_iphone
+          type: is_home
+        - condition: or
+          conditions:
+            - condition: device
+              device_id: 798929cc56393fec06823fbf5cca9735
+              domain: device_tracker
+              entity_id: device_tracker.iphone_mello
+              type: is_home
+  action:
+    - device_id: 9e759f3131cbe903c15d81c3a9754505
+      domain: alarm_control_panel
+      entity_id: alarm_control_panel.ottawa_alarm
+      type: arm_home
+  mode: single
+- id: "1658431956349"
+  alias: Alarm Off
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - calendar.home_assistant_schedule
+      to: "on"
+  condition:
+    - condition: state
+      entity_id: calendar.home_assistant_schedule
+      attribute: message
+      state: "Alarm: Turn Off"
+    - condition: or
+      conditions:
+        - condition: device
+          device_id: 3da706f92f3dc35a7debfe1cf3a7c7d3
+          domain: device_tracker
+          entity_id: device_tracker.tays_iphone
+          type: is_home
+        - condition: or
+          conditions:
+            - condition: device
+              device_id: 798929cc56393fec06823fbf5cca9735
+              domain: device_tracker
+              entity_id: device_tracker.iphone_mello
+              type: is_home
+  action:
+    - device_id: 9e759f3131cbe903c15d81c3a9754505
+      domain: alarm_control_panel
+      entity_id: alarm_control_panel.ottawa_alarm
+      type: disarm
+  mode: single
+- id: "1658432189239"
+  alias: Sleep home.
+  description: ""
+  trigger:
+    - platform: time
+      at: 00:45:00
+  condition:
+    - condition: or
+      conditions:
+        - condition: device
+          device_id: 798929cc56393fec06823fbf5cca9735
+          domain: device_tracker
+          entity_id: device_tracker.iphone_mello
+          type: is_home
+        - condition: device
+          device_id: 3da706f92f3dc35a7debfe1cf3a7c7d3
+          domain: device_tracker
+          entity_id: device_tracker.tays_iphone
+          type: is_home
+  action:
+    - device_id: 9e759f3131cbe903c15d81c3a9754505
+      domain: alarm_control_panel
+      entity_id: alarm_control_panel.ottawa_alarm
+      type: arm_home
+    - service: light.turn_off
+      data: {}
+      target:
+        entity_id: all
+    - service: fan.turn_off
+      data: {}
+      target:
+        entity_id:
+          - fan.exhaust_fan_socket_1
+          - fan.exhaust_fan_switch_1
+    - device_id: 11fb1a0e364bec47fe131a80745c0751
+      domain: cover
+      entity_id: cover.garage_door_myq
+      type: close
+    - device_id: 0922bdc50d7ab4dd49190f6ee9235630
+      domain: lock
+      entity_id: lock.garage_entry_door
+      type: lock
+  mode: single
+- id: "1658432566767"
+  alias: Welcome Home (Lights)
+  description: ""
+  trigger:
+    - platform: device
+      device_id: 3da706f92f3dc35a7debfe1cf3a7c7d3
+      domain: device_tracker
+      entity_id: device_tracker.tays_iphone
+      type: enters
+      zone: zone.home
+    - platform: device
+      device_id: 798929cc56393fec06823fbf5cca9735
+      domain: device_tracker
+      entity_id: device_tracker.iphone_mello
+      type: enters
+      zone: zone.home
+  condition:
+    - condition: state
+      entity_id: input_boolean.night_time
+      state: "on"
+  action:
+    - type: turn_on
+      device_id: 4da254ffd0908408ae8fdfad659f0e5f
+      entity_id: light.outside_light_switch_1
+      domain: light
+    - type: turn_on
+      device_id: dabc25eea7a82a2b3ec4512a988d188f
+      entity_id: light.garage_light_switch_1
+      domain: light
+    - type: turn_on
+      device_id: 1960b81a61fac01f1fb631c96b8d664f
+      entity_id: light.entryway_light_switch_1
+      domain: light
+    - type: turn_on
+      device_id: 1e97b28e81d8317782e6b78130275b9f
+      entity_id: light.living_room_lights_switch_1
+      domain: light
+    - type: turn_on
+      device_id: c841f2c24b7b2a5accc0be66199ca9b4
+      entity_id: light.entrance_vanity_light
+      domain: light
+      brightness_pct: 50
+    - delay:
+        hours: 0
+        minutes: 10
+        seconds: 0
+        milliseconds: 0
+    - type: turn_off
+      device_id: 4da254ffd0908408ae8fdfad659f0e5f
+      entity_id: light.outside_light_switch_1
+      domain: light
+    - type: turn_off
+      device_id: c841f2c24b7b2a5accc0be66199ca9b4
+      entity_id: light.entrance_vanity_light
+      domain: light
+    - type: turn_off
+      device_id: dabc25eea7a82a2b3ec4512a988d188f
+      entity_id: light.garage_light_switch_1
+      domain: light
+  mode: single
+- id: "1658981012179"
+  alias: Door Open Garage
+  description: ""
+  trigger:
+    - type: opened
+      platform: device
+      device_id: fc79027003e02d4036cd544b1e035091
+      entity_id: binary_sensor.garage_door
+      domain: binary_sensor
+    - type: motion
+      platform: device
+      device_id: b97dea77f1923e529308bf76431f772d
+      entity_id: binary_sensor.garage_camera_motion
+      domain: binary_sensor
+  condition:
+    - condition: state
+      entity_id: input_boolean.night_time
+      state: "on"
+  action:
+    - type: turn_on
+      device_id: dabc25eea7a82a2b3ec4512a988d188f
+      entity_id: light.garage_light_switch_1
+      domain: light
+    - delay:
+        hours: 0
+        minutes: 10
+        seconds: 0
+        milliseconds: 0
+    - type: turn_off
+      device_id: dabc25eea7a82a2b3ec4512a988d188f
+      entity_id: light.garage_light_switch_1
+      domain: light
+  mode: restart
+- id: "1659374136299"
+  alias: Powder Room
+  description: ""
+  trigger:
+    - platform: device
+      type: turned_on
+      device_id: d91718b384dec500f8e762d5ada71eea
+      entity_id: light.powdered_room
+      domain: light
+      for:
+        hours: 0
+        minutes: 1
+        seconds: 35
+  condition: []
+  action:
+    - type: turn_on
+      device_id: 2a73d18790eadf8a450224d9f58065a9
+      entity_id: fan.exhaust_fan_socket_1
+      domain: fan
+  mode: single
+- id: "1659663338291"
+  alias: Backyard Light night
+  description: ""
+  trigger:
+    - type: opened
+      platform: device
+      device_id: a6fe912ca9938e5dcdee271362bc35a0
+      entity_id: binary_sensor.back_door
+      domain: binary_sensor
+  condition:
+    - condition: state
+      entity_id: input_boolean.night_time
+      state: "on"
+  action:
+    - type: turn_on
+      device_id: 344ffcec6b945895338de01dd6c1f402
+      entity_id: switch.smart_plug_socket_1
+      domain: switch
+      enabled: false
+    - service: switch.turn_on
+      data: {}
+      target:
+        entity_id:
+          - switch.smart_plug_socket_1
+          - switch.backyard_light_switch_1
+    - delay:
+        hours: 0
+        minutes: 15
+        seconds: 0
+        milliseconds: 0
+    - service: switch.turn_off
+      data: {}
+      target:
+        entity_id:
+          - switch.backyard_light_switch_1
+          - switch.smart_plug_socket_1
+  mode: restart
+- id: "1659664547341"
+  alias: Outside Lights On
+  description: ""
+  trigger:
+    - platform: device
+      device_id: 11fb1a0e364bec47fe131a80745c0751
+      domain: cover
+      entity_id: cover.garage_door_myq
+      type: opening
+    - platform: device
+      device_id: 11fb1a0e364bec47fe131a80745c0751
+      domain: cover
+      entity_id: cover.garage_door_myq
+      type: opened
+      for:
+        hours: 0
+        minutes: 0
+        seconds: 35
+    - type: opened
+      platform: device
+      device_id: a8eaacb621411b4b128c5025ee2d8fc8
+      entity_id: binary_sensor.front_door
+      domain: binary_sensor
+  condition:
+    - condition: state
+      state: "on"
+      entity_id: input_boolean.night_time
+  action:
+    - service: switch.turn_on
+      data: {}
+      target:
+        entity_id: switch.outside_light_switch_1
+    - delay:
+        hours: 0
+        minutes: 10
+        seconds: 0
+        milliseconds: 0
+    - wait_for_trigger:
+        - platform: device
+          device_id: 11fb1a0e364bec47fe131a80745c0751
+          domain: cover
+          entity_id: cover.garage_door_myq
+          type: closed
+    - service: switch.turn_off
+      data: {}
+      target:
+        entity_id: switch.outside_light_switch_1
+  mode: restart
+- id: "1659664936813"
+  alias: Front door open.
+  description: ""
+  trigger:
+    - type: opened
+      platform: device
+      device_id: a8eaacb621411b4b128c5025ee2d8fc8
+      entity_id: binary_sensor.front_door
+      domain: binary_sensor
+  condition:
+    - condition: state
+      entity_id: input_boolean.night_time
+      state: "on"
+  action:
+    - service: switch.turn_on
+      data: {}
+      target:
+        entity_id:
+          - switch.hallway_light_switch_1
+          - switch.foyer_light_switch_1
+    - type: turn_on
+      device_id: c841f2c24b7b2a5accc0be66199ca9b4
+      entity_id: light.entrance_vanity_light
+      domain: light
+      brightness_pct: 45
+  mode: single
+- id: "1660619757782"
+  alias: Turn off camera status
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - switch.cam_status_light
+      to: "On"
+    - platform: time_pattern
+      hours: "0"
+      minutes: /35
+  condition: []
+  action:
+    - service: switch.turn_off
+      data: {}
+      target:
+        entity_id:
+          - switch.cam_status_light
+  mode: single
+- id: "1660658187508"
+  alias: Powder exhaust off
+  description: ""
+  trigger:
+    - platform: device
+      type: turned_on
+      device_id: 2a73d18790eadf8a450224d9f58065a9
+      entity_id: fan.exhaust_fan_socket_1
+      domain: fan
+  condition: []
+  action:
+    - wait_for_trigger:
+        - platform: device
+          type: turned_off
+          device_id: d91718b384dec500f8e762d5ada71eea
+          entity_id: light.powdered_room
+          domain: light
+          for:
+            hours: 0
+            minutes: 0
+            seconds: 30
+      timeout:
+        hours: 0
+        minutes: 10
+        seconds: 0
+        milliseconds: 0
+    - delay:
+        hours: 0
+        minutes: 5
+        seconds: 35
+        milliseconds: 0
+    - type: turn_off
+      device_id: 2a73d18790eadf8a450224d9f58065a9
+      entity_id: fan.exhaust_fan_socket_1
+      domain: fan
+  mode: restart
+- id: "1663698885609"
+  alias: Doorbell Speakers
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.doorbell_doorbell
+      from: "off"
+      to: "on"
+  condition: []
+  action:
+    - if:
+        - condition: or
+          conditions:
+            - condition: device
+              device_id: 798929cc56393fec06823fbf5cca9735
+              domain: device_tracker
+              entity_id: device_tracker.iphone_mello
+              type: is_home
+            - condition: device
+              device_id: 3da706f92f3dc35a7debfe1cf3a7c7d3
+              domain: device_tracker
+              entity_id: device_tracker.tays_iphone
+              type: is_home
+      then:
+        - service: media_player.play_media
+          data:
+            media_content_id: media-source://media_source/local/Metro_Doudoudou.mp3
+            media_content_type: audio/mpeg
+            announce: true
+          target:
+            device_id:
+              - 56f7e857ce1c072b956713bd472cda23
+              - 43fb56a71fff90f3b5a165e31ec4ee8e
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 4
+            milliseconds: 300
+        - wait_for_trigger:
+            - platform: device
+              device_id: 26a017b72a475b87cbdc7c00f9a8ec6a
+              domain: media_player
+              entity_id: media_player.all_google_speakers
+              type: idle
+          timeout:
+            hours: 0
+            minutes: 0
+            seconds: 0
+            milliseconds: 0
+        - service: tts.google_translate_say
+          data:
+            message: Someone is at the door.
+            cache: true
+            entity_id: media_player.announcements
+  mode: single
+- id: "1663702826230"
+  alias: Doorbell App
+  description: ""
+  use_blueprint:
+    path: seamus65/doorbell-notify-google-and-send-camera-snapshot-to-app.yaml
+    input:
+      doorbell: binary_sensor.doorbell_doorbell
+      camera: camera.doorbell_high
+      notify_device: f78683faeb7e7c6fc7521cdbccc97521
+      notify_device_2: 3da706f92f3dc35a7debfe1cf3a7c7d3
+      notify_device_3: 798929cc56393fec06823fbf5cca9735
+      is_ios: true
+      delay: 1
+      notification_title: Ding dong!
+      notification_message: There is someone at the door!
+- id: "1665368430299"
+  alias: Backyard Sync states
+  description: ""
+  use_blueprint:
+    path: aderusha/link_multiple_devices.yaml
+    input:
+      linked_entities:
+        - switch.smart_plug_socket_1
+        - switch.backyard_light_switch_1
+- id: "1665370466838"
+  alias: Low battery
+  description: ""
+  use_blueprint:
+    path: gmlupatelli/low_battery_notification.yaml
+    input:
+      threshold: 10
+      time: 08:28:00
+      tuesday_enabled: true
+      thursday_enabled: true
+      saturday_enabled: true
+      sunday_enabled: true
+      actions:
+        - service: notify.all_ios_devices
+          data:
+            message: "{{sensors}} has a low battery"
+            title: Low battery sensor
+- id: "1669006051398"
+  alias: New Update
+  description: ""
+  use_blueprint:
+    path: mdegat01/update_notifications.yaml
+    input:
+      reminder_hours: "24"
+      update_entities:
+        - update.cloudflared_update
+        - update.home_assistant_core_update
+        - update.home_assistant_supervisor_update
+        - update.hacs_update
+      mobile_app_device: f78683faeb7e7c6fc7521cdbccc97521
+      mobile_app_device_2: 3da706f92f3dc35a7debfe1cf3a7c7d3
+      only_after: "10:00:00"
+      only_before: "18:00:00"
+- id: "1669006759619"
+  alias: Unlock garage entry
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - cover.garage_door_myq
+      to: open
+  condition:
+    - condition: or
+      conditions:
+        - condition: device
+          device_id: 3da706f92f3dc35a7debfe1cf3a7c7d3
+          domain: device_tracker
+          entity_id: device_tracker.tays_iphone
+          type: is_home
+        - condition: device
+          device_id: 798929cc56393fec06823fbf5cca9735
+          domain: device_tracker
+          entity_id: device_tracker.iphone_mello
+          type: is_home
+  action:
+    - device_id: 0922bdc50d7ab4dd49190f6ee9235630
+      domain: lock
+      entity_id: lock.garage_entry_door
+      type: unlock
+  mode: single
+- id: "1672373844719"
+  alias: Is Night Time
+  description: ""
+  trigger:
+    - platform: time_pattern
+      minutes: /15
+  condition: []
+  action:
+    - if:
+        - condition: or
+          conditions:
+            - condition: sun
+              after: sunset
+              after_offset: -00:30
+            - condition: sun
+              before: sunrise
+      then:
+        - service: input_boolean.turn_on
+          data: {}
+          target:
+            entity_id: input_boolean.night_time
+      else:
+        - service: input_boolean.turn_off
+          data: {}
+          target:
+            entity_id: input_boolean.night_time
+  mode: single
+- id: "1672442477432"
+  alias: Auto On - Stairs
+  description: ""
+  trigger:
+    - type: motion
+      platform: device
+      device_id: 6578b4b8a4665d26ca9917092516fab1
+      entity_id: binary_sensor.hue_motion_sensor_1_motion_2
+      domain: binary_sensor
+  condition:
+    - condition: state
+      entity_id: input_boolean.night_time
+      state: "on"
+  action:
+    - service: light.turn_on
+      data: {}
+      target:
+        entity_id:
+          - light.stairs_switch_1
+          - light.upstairs_hallway_switch_1
+  mode: restart
+- id: "1672442910968"
+  alias: Auto Off - Guest Room
+  description: ""
+  trigger:
+    - type: no_motion
+      platform: device
+      device_id: 96ed6dd9ba89c12bf0ebbc7d380abc13
+      entity_id: binary_sensor.hue_motion_sensor_1_motion_4
+      domain: binary_sensor
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 30
+    - platform: state
+      entity_id:
+        - light.guest_bedroom_light_group
+      to: "on"
+      from: "off"
+      for:
+        hours: 0
+        minutes: 10
+        seconds: 0
+  condition:
+    - type: is_no_motion
+      condition: device
+      device_id: 96ed6dd9ba89c12bf0ebbc7d380abc13
+      entity_id: binary_sensor.hue_motion_sensor_1_motion_4
+      domain: binary_sensor
+      for:
+        hours: 0
+        minutes: 2
+        seconds: 30
+  action:
+    - delay:
+        hours: 0
+        minutes: 1
+        seconds: 0
+        milliseconds: 0
+    - service: light.turn_off
+      data: {}
+      target:
+        area_id:
+          - guest_room
+  mode: restart
+- id: "1672458378491"
+  alias: Auto On - Guest Light On
+  description: ""
+  trigger:
+    - type: motion
+      platform: device
+      device_id: 96ed6dd9ba89c12bf0ebbc7d380abc13
+      entity_id: binary_sensor.hue_motion_sensor_1_motion_4
+      domain: binary_sensor
+  condition:
+    - condition: and
+      conditions:
+        - condition: state
+          entity_id: light.guest_bedroom_light_group
+          state: "off"
+        - condition: state
+          entity_id: binary_sensor.run_auto_lights
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.night_time
+          state: "on"
+        - condition: not
+          conditions:
+            - condition: device
+              device_id: f25dd9799012ac985276117f6967f363
+              domain: media_player
+              entity_id: media_player.guest_tv
+              type: is_on
+  action:
+    - service: light.turn_on
+      data:
+        color_temp: 455
+        brightness_pct: 50
+      target:
+        area_id: guest_room
+  mode: single
+- id: "1672460406249"
+  alias: "Auto Off - Master Bedroom "
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - light.light_group_master_bedroom
+      to: "on"
+      from: "off"
+      for:
+        hours: 0
+        minutes: 10
+        seconds: 0
+    - platform: state
+      entity_id:
+        - binary_sensor.master_bedroom_occupancy
+      to: "off"
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 30
+  condition:
+    - condition: state
+      entity_id: binary_sensor.master_bedroom_occupancy
+      state: "off"
+      for:
+        hours: 0
+        minutes: 2
+        seconds: 0
+  action:
+    - delay:
+        hours: 0
+        minutes: 1
+        seconds: 0
+        milliseconds: 0
+    - service: light.turn_off
+      data: {}
+      target:
+        area_id:
+          - master_bedroom
+  mode: restart
+- id: "1672461246700"
+  alias: Auto On - Master Bedroom
+  description: ""
+  trigger:
+    - type: motion
+      platform: device
+      device_id: b81a12c1753b32ab26bfc4c14d1161e9
+      entity_id: binary_sensor.hue_motion_sensor_1_motion
+      domain: binary_sensor
+  condition:
+    - condition: and
+      conditions:
+        - condition: state
+          entity_id: light.light_group_master_bedroom
+          state: "off"
+        - condition: state
+          entity_id: binary_sensor.run_auto_lights
+          state: "on"
+        - condition: state
+          entity_id: input_boolean.night_time
+          state: "on"
+        - condition: not
+          conditions:
+            - condition: device
+              device_id: 2fb1005d9b19dca20afb5eb7c7ec5ce6
+              domain: media_player
+              entity_id: media_player.master_bedroom_samsung_tv
+              type: is_on
+        - condition: not
+          conditions:
+            - condition: device
+              device_id: 4cb6ca32d4abd14c1cdf9608e9a01a49
+              domain: media_player
+              entity_id: media_player.master_bedroom_hue_sync
+              type: is_playing
+  action:
+    - service: light.turn_on
+      data:
+        color_temp: 340
+        brightness_pct: 50
+      target:
+        device_id:
+          - c358902f5de1dd0f20b25e8c7cfbb313
+          - 2820017f4481f8d54e0974fe80a1196d
+          - edd0d6d53a498ee0f841817327bf93bb
+    - condition: time
+      before: "21:00:00"
+      after: "16:00:00"
+      weekday:
+        - sun
+        - mon
+        - tue
+        - wed
+        - thu
+        - fri
+        - sat
+    - type: turn_on
+      device_id: f497ccbb369b24f198bad823eb0da86f
+      entity_id: light.master_bedroom_light_switch_1
+      domain: light
+  mode: single
+- id: "1672461973985"
+  alias: Alarm Arm
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - input_boolean.at_home
+      from: "on"
+      to: "off"
+      for:
+        hours: 0
+        minutes: 1
+        seconds: 0
+  condition:
+    - condition: state
+      entity_id: input_boolean.at_home
+      state: "off"
+      for:
+        hours: 0
+        minutes: 0
+        seconds: 30
+  action:
+    - if:
+        - condition: state
+          entity_id: binary_sensor.open_doors
+          state: "off"
+      then:
+        - device_id: 9e759f3131cbe903c15d81c3a9754505
+          domain: alarm_control_panel
+          entity_id: alarm_control_panel.ottawa_alarm
+          type: arm_away
+      else:
+        - service: notify.all_ios_devices
+          data:
+            message: The alarm has been activated, bypassing the open door.
+            title: A door was left open!
+            data:
+              sound:
+                name: PINUnexpected.caf
+                critical: 1
+                volume: 0.5
+        - device_id: 9e759f3131cbe903c15d81c3a9754505
+          domain: alarm_control_panel
+          entity_id: alarm_control_panel.ottawa_alarm
+          type: arm_night
+  mode: single
+- id: "1672464322139"
+  alias: Somebody at home
+  description: ""
+  trigger:
+    - platform: zone
+      entity_id: person.homeassistant
+      zone: zone.home
+      event: enter
+    - platform: zone
+      entity_id: person.homeassistant
+      zone: zone.home
+      event: leave
+    - platform: zone
+      entity_id: person.mello9190
+      zone: zone.home
+      event: enter
+    - platform: zone
+      entity_id: person.mello9190
+      zone: zone.home
+      event: leave
+    - platform: time_pattern
+      minutes: /35
+  condition: []
+  action:
+    - if:
+        - condition: or
+          conditions:
+            - condition: zone
+              entity_id: person.mello9190
+              zone: zone.home
+            - condition: zone
+              entity_id: person.homeassistant
+              zone: zone.home
+      then:
+        - service: input_boolean.turn_on
+          data: {}
+          target:
+            entity_id: input_boolean.at_home
+      else:
+        - service: input_boolean.turn_off
+          data: {}
+          target:
+            entity_id: input_boolean.at_home
+  mode: single
+- id: "1672611399351"
+  alias: Auto Off - Stairs
+  description: ""
+  trigger:
+    - type: no_motion
+      platform: device
+      device_id: 6578b4b8a4665d26ca9917092516fab1
+      entity_id: binary_sensor.hue_motion_sensor_1_motion_2
+      domain: binary_sensor
+      for:
+        hours: 0
+        minutes: 1
+        seconds: 30
+    - platform: state
+      entity_id:
+        - light.stairs_light_group
+      to: "on"
+      from: "off"
+      for:
+        hours: 0
+        minutes: 2
+        seconds: 0
+  condition:
+    - type: is_no_motion
+      condition: device
+      device_id: 6578b4b8a4665d26ca9917092516fab1
+      entity_id: binary_sensor.hue_motion_sensor_1_motion_2
+      domain: binary_sensor
+      for:
+        hours: 0
+        minutes: 0
+        seconds: 35
+  action:
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 10
+        milliseconds: 0
+    - service: light.turn_off
+      data: {}
+      target:
+        entity_id: light.stairs_light_group
+  mode: restart
+- id: "1672615920648"
+  alias: Auto on - Office
+  description: ""
+  trigger:
+    - type: motion
+      platform: device
+      device_id: 4627dd86a0b6336753d9fb835f4f68fc
+      entity_id: binary_sensor.hue_motion_sensor_1_motion_3
+      domain: binary_sensor
+  condition:
+    - condition: and
+      conditions:
+        - condition: state
+          state: "off"
+          entity_id: light.light_group_office
+        - condition: state
+          entity_id: binary_sensor.run_auto_lights
+          state: "on"
+          enabled: false
+        - condition: state
+          entity_id: input_boolean.night_time
+          state: "on"
+          enabled: false
+  action:
+    - if:
+        - condition: state
+          entity_id: binary_sensor.business_hours
+          state: "on"
+      then:
+        - service: scene.turn_on
+          target:
+            entity_id: scene.office_hue_room_valley_dawn
+          metadata: {}
+      else:
+        - service: scene.turn_on
+          target:
+            entity_id: scene.office_office_at_night
+          metadata: {}
+  mode: single
+- id: "1672616666954"
+  alias: Auto Off - Office
+  description: ""
+  trigger:
+    - type: no_motion
+      platform: device
+      device_id: 4627dd86a0b6336753d9fb835f4f68fc
+      entity_id: binary_sensor.hue_motion_sensor_1_motion_3
+      domain: binary_sensor
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 30
+    - platform: state
+      entity_id:
+        - light.light_group_office
+      to: "on"
+      from: "off"
+      for:
+        hours: 0
+        minutes: 10
+        seconds: 0
+  condition:
+    - type: is_no_motion
+      condition: device
+      device_id: 4627dd86a0b6336753d9fb835f4f68fc
+      entity_id: binary_sensor.hue_motion_sensor_1_motion_3
+      domain: binary_sensor
+      for:
+        hours: 0
+        minutes: 5
+        seconds: 30
+  action:
+    - delay:
+        hours: 0
+        minutes: 1
+        seconds: 0
+        milliseconds: 0
+    - service: light.turn_off
+      data: {}
+      target:
+        area_id:
+          - office
+  mode: restart
+- id: "1672894458456"
+  alias: Notify alarm change
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - alarm_control_panel.ottawa_alarm
+  condition:
+    - condition: or
+      conditions:
+        - condition: state
+          entity_id: alarm_control_panel.ottawa_alarm
+          state: armed_away
+        - condition: state
+          entity_id: alarm_control_panel.ottawa_alarm
+          state: armed_custom_bypass
+        - condition: state
+          entity_id: alarm_control_panel.ottawa_alarm
+          state: armed_night
+        - condition: state
+          entity_id: alarm_control_panel.ottawa_alarm
+          state: armed_home
+        - condition: state
+          entity_id: alarm_control_panel.ottawa_alarm
+          state: disarmed
+  action:
+    - if:
+        - condition: not
+          conditions:
+            - condition: state
+              entity_id: input_boolean.at_home
+              state: "on"
+              for:
+                hours: 0
+                minutes: 5
+                seconds: 0
+      then:
+        - service: notify.mobile_app_taysiphone
+          data:
+            message:
+              The alarm changed to {{ states.alarm_control_panel.ottawa_alarm.state
+              }}
+            title: Alarm is {{ states.alarm_control_panel.ottawa_alarm.state }}.
+            data:
+              sound:
+                name: 3rdParty_Failure_Haptic.caf
+                critical: 1
+                volume: 0.5
+  mode: single
+- id: "1673538003817"
+  alias: Auto On - Laundry
+  description: ""
+  trigger:
+    - type: opened
+      platform: device
+      device_id: 5c599bb0004c2b7493ea239415304536
+      entity_id: binary_sensor.laundry_room
+      domain: binary_sensor
+  condition: []
+  action:
+    - type: turn_on
+      device_id: b5e8e0038d8ee28ae6d3f3090fd8561a
+      entity_id: light.laundry_light_switch_1
+      domain: light
+    - wait_for_trigger:
+        - type: not_opened
+          platform: device
+          device_id: 5c599bb0004c2b7493ea239415304536
+          entity_id: binary_sensor.laundry_room
+          domain: binary_sensor
+          for:
+            hours: 0
+            minutes: 30
+            seconds: 0
+  mode: single
